@@ -54,7 +54,7 @@ build: $(BUILD_DIR)/utils.o \
 	   $(BUILD_DIR)/client.o \
 	   $(BUILD_DIR)/server.o \
        $(BUILD_DIR)/main.o 
-	   $(CC) $^ -o main $(LDFLAGS)
+	   $(CC) $^ -o server $(LDFLAGS)
 
 server: 
 	./main $(PORT)
