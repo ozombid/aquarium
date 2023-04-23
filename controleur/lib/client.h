@@ -5,6 +5,8 @@
 #define ADMIN "admin"
 #define USER "user"
 
+struct server;
+
 struct client {
     // identities
     int socket;
@@ -16,7 +18,7 @@ struct client {
     // status
     bool status;
     // server handler
-    void (*handler)(struct client *, char**);
+    void (*handler)(struct client *,  struct server * s, char**);
     // pointers
     struct aquarium * aquarium;
     struct view * view;
@@ -40,7 +42,7 @@ void client_clear_view(struct client * c);
 
 void client_set_aquarium(struct client * c, struct aquarium * a);
 
-void client_set_handler(struct client * c, void (*f)(struct client *, char**));
+void client_set_handler(struct client * c, void (*f)(struct client *, struct server * s, char**));
 
 // bools
 bool is_client_end(struct client * c);

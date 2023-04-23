@@ -11,6 +11,7 @@ struct aquarium {
     struct aquarium * next;
 };
 
+
 struct aquarium * aquarium_empty();
 
 struct aquarium * aquarium_init();

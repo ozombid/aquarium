@@ -59,7 +59,7 @@ void client_set_aquarium(struct client * c, struct aquarium * a)
 {
     c->aquarium = a;
 }
-void client_set_handler(struct client * c, void (*f)(struct client *, char**))
+void client_set_handler(struct client * c, void (*f)(struct client *,  struct server * s, char**))
 {
     c->handler = f;
 }

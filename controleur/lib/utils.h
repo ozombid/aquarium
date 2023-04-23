@@ -14,12 +14,12 @@
 #include <errno.h>
 #include <time.h>
 
-
 #define MAX_COMMANDS 10
 #define MAX_NAMES 100
 #define BUFFER_SIZE 255
 #define NONE "none"
 #define NEG -1
+
 
 void error(const char *msg);
 

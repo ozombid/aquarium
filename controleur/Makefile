@@ -38,7 +38,10 @@ $(BUILD_DIR)/aquarium.o: aquarium.c aquarium.h
 $(BUILD_DIR)/client.o: client.c client.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(BUILD_DIR)/server.o: server.c aquarium.h
+$(BUILD_DIR)/server.o: server.c server.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/main.o: main.c 
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 # build
@@ -49,14 +52,15 @@ build: $(BUILD_DIR)/utils.o \
 	   $(BUILD_DIR)/syntax.o \
 	   $(BUILD_DIR)/aquarium.o \
 	   $(BUILD_DIR)/client.o \
-       $(BUILD_DIR)/server.o 
-	   $(CC) $^ -o server $(LDFLAGS)
+	   $(BUILD_DIR)/server.o \
+       $(BUILD_DIR)/main.o 
+	   $(CC) $^ -o main $(LDFLAGS)
 
 server: 
-	./server $(PORT)
+	./main $(PORT)
 
 valgrind: 
-	$(VAL) $(VALFLAGS) ./server $(PORT)
+	$(VAL) $(VALFLAGS) ./main $(PORT)
 
 
 .PHONY: build server clean
