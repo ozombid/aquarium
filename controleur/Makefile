@@ -57,10 +57,10 @@ build: $(BUILD_DIR)/utils.o \
 	   $(CC) $^ -o server $(LDFLAGS)
 
 server: 
-	./main $(PORT)
+	./server $(PORT)
 
 valgrind: 
-	$(VAL) $(VALFLAGS) ./main $(PORT)
+	$(VAL) $(VALFLAGS) ./server $(PORT)
 
 
 .PHONY: build server clean

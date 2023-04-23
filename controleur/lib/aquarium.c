@@ -113,8 +113,6 @@ struct aquarium * aquarium_find(char* name, struct aquarium * a_list)
     if (aquarium_is_empty(a_list)) return NULL;
     struct aquarium * ptr = a_list;
     while (!is_aquarium_end(ptr)) {
-        printf("%ld \n",aquarium_size(a_list));
-        printf("%s \n",ptr->name);
         if (!strcmp(ptr->name, name)) return ptr;
         ptr = ptr->next;
     }

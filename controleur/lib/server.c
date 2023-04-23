@@ -74,7 +74,6 @@ void sign_in(int socket, struct server * s)
         send(c->socket, c->wbuffer, strlen(c->wbuffer), 0);
         // read 
         client_read(c);
-        printf("recieved from %s : %s \n", c->name, c->rbuffer);
         // check
         if (client_find_by_name(c->rbuffer, s->client_list) != NULL) {
             bzero(c->wbuffer, BUFFER_SIZE);

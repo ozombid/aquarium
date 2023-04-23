@@ -107,7 +107,6 @@ int main(int argc, char *argv[])
                         else ptr->handler(ptr, server, cmds);
                         // free
                         free(cmds);
-                        printf("\n");
                     }                   
                 }   
                 ptr = tmp;           
