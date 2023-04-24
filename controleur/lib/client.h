@@ -18,7 +18,7 @@ struct client {
     // status
     bool status;
     // server handler
-    void (*handler)(struct client *,  struct server * s);
+    void (*handler)(struct client *,  struct server *);
     // pointers
     struct aquarium * aquarium;
     struct view * view;
