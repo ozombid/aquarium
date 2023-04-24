@@ -212,6 +212,6 @@ void client_simple_write(struct client * c, char* message)
 {
     bzero(c->wbuffer, BUFFER_SIZE);
     printf("sent to %s : %s\n", c->name, message);
-    sprintf(c->wbuffer, "%s ", message); 
+    sprintf(c->wbuffer, "%s", message); 
     send(c->socket, c->wbuffer, strlen(c->wbuffer), 0); 
 }
