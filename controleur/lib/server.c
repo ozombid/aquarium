@@ -37,62 +37,42 @@ void server_free(struct server * s)
     remove("aquarium.txt");
 }
 
-void sign_in(int socket, struct server * s)
+void handler_name(struct client * c, struct server * s) // view = NULL
 {
-    struct client * c;
-    while (1) {
-        // write
-        bzero(message, BUFFER_SIZE);
-        strcpy(message, "admin or user ? : ");
-        printf("sent : %s \n", message);
-        send(socket, message, strlen(message), 0);
-        // read 
-        bzero(message, BUFFER_SIZE);
-        if (read(socket, message, BUFFER_SIZE) < 0) error("Error on reading");
-        // this is for Java Client
-        size_t len = strlen(message);
-        if (len > 0 && message[len-1] == '\n') message[len-1] = '\0';
-        //
-        printf("recieved : %s \n", message);
-        // check
-        void (*f)(struct client *, struct server * s, char**) = !strcmp(message, ADMIN) ? admin :
-            !strcmp(message, USER) ? user : NULL;
-        if (f != NULL) {
-            c = client_create(socket);
-            client_set_id(c, message);
-            client_set_handler(c, f);
-            client_pop(c, s->client_list);
-            printf("Added to list of sockets \n");
-            break;
-        }
+    if (client_find_by_name(c->rbuffer, s->client_list) != NULL)
+        client_simple_write(c, "Name already exists \n> enter your name : ");
+    else {
+        client_set_name(c, c->rbuffer);
+        client_simple_write(c, "admin or user ? : ");
+        client_set_handler(c, handler_id);
     }
-    while (1) {
-        // write
-        bzero(c->wbuffer, BUFFER_SIZE);
-        strcpy(c->wbuffer, "Enter your name : ");
-        printf("sent to %s : %s\n", c->name, c->wbuffer);
-        send(c->socket, c->wbuffer, strlen(c->wbuffer), 0);
-        // read 
-        client_read(c);
-        // check
-        if (client_find_by_name(c->rbuffer, s->client_list) != NULL) {
-            bzero(c->wbuffer, BUFFER_SIZE);
-            strcpy(c->wbuffer, "Name already exists \n");
-            printf("sent to %s : %s\n", c->name, c->wbuffer);
-            send(c->socket, c->wbuffer, strlen(c->wbuffer), 0);
-        }
-        else {
-           client_set_name(c, c->rbuffer);
-           printf("Client registred ! \n");
-           break;
-        }
-    }
-    client_write(c, "Welcome to the aquarium server!");
 }
 
-void admin(struct client * c, struct server * s, char** cmds) // view = NULL
+void handler_id(struct client * c, struct server * s) // view = NULL
 {
-    if (!strcmp(cmds[0],"down")) server_kill(s);  // admin can stop server anytime
+    if (strcmp(c->rbuffer, ADMIN) && strcmp(c->rbuffer, USER)) 
+        client_simple_write(c, "admin or user ? : ");
+    else {
+        client_set_id(c, c->rbuffer);
+        void (*f)(struct client *, struct server * s) = !strcmp(c->id, ADMIN) ? handler_admin :
+            !strcmp(c->id, USER) ? handler_user : NULL;
+        assert (f != NULL);
+        client_set_handler(c, f);
+        printf("Client registred ! \n");
+        client_write(c, "Welcome to the aquarium server!");
+    }
+}
+
+void handler_admin(struct client * c, struct server * s) // view = NULL
+{
+    // writing message for sprintf
+    char message[BUFFER_SIZE];
+    // parse and get command
+    char** cmds = split_string(c->rbuffer," ");
+    // verify syntax
+    if (!control_server_syntax(cmds)) client_write(c, "Command not found");
+
+    else if (!strcmp(cmds[0],"down")) server_kill(s);  // admin can stop server anytime
 
     else if (!strcmp(cmds[0],"load")) // 
     { 
@@ -125,7 +105,7 @@ void admin(struct client * c, struct server * s, char** cmds) // view = NULL
     }
     else if (!strcmp(cmds[0],"add") && !strcmp(cmds[1],"view")) 
     {
-        struct frame f = get_frame(cmds[3],"+x");
+        struct frame f = frame_create(cmds[3],"+x");
         if (!aquarium_fit_frame(c->aquarium, f)) client_write(c,"Cannot add this view (out of aquarium)");
         else {
             view_pop(cmds[2], f, c->aquarium->views);
@@ -148,13 +128,23 @@ void admin(struct client * c, struct server * s, char** cmds) // view = NULL
         }
     }
     else client_write(c,"Permission denied");
+
+    // free
+    free(cmds);
 }
 
-void user(struct client * c, struct server * s, char** cmds)
+void handler_user(struct client * c, struct server * s)
 {
+    // writing message for sprintf
+    char message[BUFFER_SIZE];
+    bzero(message, BUFFER_SIZE);
+    // parse and get command
+    char** cmds = split_string(c->rbuffer," ");
     size_t cmds_len = get_array_length(cmds);
+    // verify syntax
+    if (!control_server_syntax(cmds)) client_write(c, "Command not found");
 
-    if (!strcmp(cmds[0],"load")) 
+    else if (!strcmp(cmds[0],"load")) 
     { 
         c->aquarium = NULL;
         struct aquarium * a = aquarium_find(cmds[1], s->aquarium_list);
@@ -202,7 +192,7 @@ void user(struct client * c, struct server * s, char** cmds)
     }
     else if (!strcmp(cmds[0],"add") && !strcmp(cmds[1],"fish")) 
     {
-        struct shape s = get_shape(cmds[3],"+x");
+        struct shape s = shape_create(cmds[3],"+x");
         struct move * m = move_find(cmds[4], c->aquarium->moves);
         if (!aquarium_fit_shape(c->aquarium, s)) client_write(c,"Cannot add this fish (out of aquarium)");
         else if (m == NULL) client_write(c,"Move does not exist");
@@ -233,5 +223,67 @@ void user(struct client * c, struct server * s, char** cmds)
         }
     }
     else client_write(c, "Permission denied"); 
+
+    // free
+    free(cmds);
 }
 
+
+
+/*
+void *sign_in(void * args)
+{
+    char msg[BUFFER_SIZE];
+    struct thread_args * th_args = (struct thread_args *)args;
+    struct client * c = th_args->client;
+    struct server * s = th_args->server;
+    while (1) {
+        // write
+        bzero(msg, BUFFER_SIZE);
+        strcpy(msg, "admin or user ? : ");
+        printf("sent : %s \n", msg);
+        send(c->socket, msg, strlen(msg), 0);
+        // read 
+        bzero(msg, BUFFER_SIZE);
+        int r = read(c->socket, msg, BUFFER_SIZE);
+        if (r < 0) error("Error on reading");
+        else if (r == 0) return NULL;
+        // this is for Java Client
+        size_t len = strlen(msg);
+        if (len > 0 && msg[len-1] == '\n') msg[len-1] = '\0';
+        printf("recieved : %s.\n", msg);
+        // check
+        void (*f)(struct client *, struct server * s, char**) = !strcmp(msg, ADMIN) ? admin :
+            !strcmp(msg, USER) ? user : NULL;
+        if (f != NULL) {
+            client_set_id(c, msg);
+            client_set_handler(c, f);
+            break;
+        }
+    }
+    while (1) {
+        // write
+        bzero(c->wbuffer, BUFFER_SIZE);
+        strcpy(c->wbuffer, "Enter your name : ");
+        printf("sent to %s : %s\n", c->name, c->wbuffer);
+        send(c->socket, c->wbuffer, strlen(c->wbuffer), 0);
+        // read 
+        client_read(c);
+        // check
+        if (client_find_by_name(c->rbuffer, s->client_list) != NULL) {
+            bzero(c->wbuffer, BUFFER_SIZE);
+            strcpy(c->wbuffer, "Name already exists \n");
+            printf("sent to %s : %s\n", c->name, c->wbuffer);
+            send(c->socket, c->wbuffer, strlen(c->wbuffer), 0);
+        }
+        else {
+           client_set_name(c, c->rbuffer);
+           printf("Client registred ! \n");
+           break;
+        }
+    }
+    client_write(c, "Welcome to the aquarium server!");
+    client_pop(c, s->client_list);
+    printf("Added to list of sockets \n");
+    return NULL;
+}*/

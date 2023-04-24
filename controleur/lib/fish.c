@@ -144,12 +144,11 @@ char* fishes_show(struct fish * f_list)
     return result;
 }
 
-bool fish_start(struct fish * f) {
-    f->status = STARTED;
-    return true;
+void fish_start(struct fish * f) {
+    if (f->status != STARTED) f->status = STARTED;
 }
 
-struct shape get_shape(char* str, const char* delim)
+struct shape shape_create(char* str, const char* delim)
 {
     int ints[4];
     int count = 0;

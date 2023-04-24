@@ -18,7 +18,7 @@ struct client {
     // status
     bool status;
     // server handler
-    void (*handler)(struct client *,  struct server * s, char**);
+    void (*handler)(struct client *,  struct server * s);
     // pointers
     struct aquarium * aquarium;
     struct view * view;
@@ -42,7 +42,7 @@ void client_clear_view(struct client * c);
 
 void client_set_aquarium(struct client * c, struct aquarium * a);
 
-void client_set_handler(struct client * c, void (*f)(struct client *, struct server * s, char**));
+void client_set_handler(struct client * c, void (*f)(struct client *, struct server * s));
 
 // bools
 bool is_client_end(struct client * c);
@@ -77,3 +77,5 @@ char* clients_show(struct client * c_list);
 bool client_read(struct client * c);
 
 void client_write(struct client * c, char* message);
+
+void client_simple_write(struct client * c, char* message);

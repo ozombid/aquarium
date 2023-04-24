@@ -71,8 +71,10 @@ int main(int argc, char *argv[])
 			printf("socket fd is %d, ip is : %s, port : %d \n",
                     new_socket, inet_ntoa(address.sin_addr), ntohs (address.sin_port));
 			// add new socket client to client list
-            sign_in(new_socket, server);
-            printf("\n");
+            struct client * c = client_create(new_socket);
+            client_set_handler(c, handler_name);
+            client_pop(c, server->client_list);
+            client_simple_write(c, "enter your name : ");
 		}
 
         else 
@@ -97,17 +99,7 @@ int main(int argc, char *argv[])
                         close(sd);
                     }
                     // Echo back the message that came in
-                    else {
-                        bzero(message, BUFFER_SIZE);
-                        // parse and get command
-                        char** cmds = split_string(ptr->rbuffer," ");
-                        // verify syntax
-                        if (!control_server_syntax(cmds)) client_write(ptr, "Command not found");
-                        // apply
-                        else ptr->handler(ptr, server, cmds);
-                        // free
-                        free(cmds);
-                    }                   
+                    else ptr->handler(ptr, server);             
                 }   
                 ptr = tmp;           
             }    
@@ -118,3 +110,9 @@ int main(int argc, char *argv[])
     server_free(server);
 	return 0;
 }
+
+
+/*
+            struct thread_args * a = malloc(sizeof(struct thread_args));
+            *a = (struct thread_args){c, server};
+            pthread_create(&(c->thread), NULL, &sign_in, a);*/

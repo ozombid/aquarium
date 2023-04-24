@@ -4,9 +4,6 @@
 #define ON true
 #define OFF false
 
-// writing message for sprintf
-static char message[BUFFER_SIZE];
-
 struct server {
     // server status
     bool status;
@@ -24,9 +21,13 @@ void server_kill(struct server * s);
 
 void server_free(struct server * s);
 
-void sign_in(int socket, struct server * s);
+void *sign_in(void * args);
 
 // handlers
-void admin(struct client * c, struct server * server, char** cmds);
+void handler_id(struct client * c, struct server * server);
 
-void user(struct client * c, struct server * server, char** cmds);
+void handler_name(struct client * c, struct server * server);
+
+void handler_admin(struct client * c, struct server * server);
+
+void handler_user(struct client * c, struct server * server);

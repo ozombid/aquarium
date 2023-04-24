@@ -31,6 +31,7 @@ struct client * client_create(int socket)
     c->view = NULL;
     // unknown next
     c->next = NULL;
+    // create sign in thread
     return c;
 }
 
@@ -59,7 +60,7 @@ void client_set_aquarium(struct client * c, struct aquarium * a)
 {
     c->aquarium = a;
 }
-void client_set_handler(struct client * c, void (*f)(struct client *,  struct server * s, char**))
+void client_set_handler(struct client * c, void (*f)(struct client *,  struct server * s))
 {
     c->handler = f;
 }
@@ -81,7 +82,6 @@ bool client_is_empty(struct client * c_list)
 // add / remove
 void client_pop(struct client * c, struct client * c_list) 
 {
-    ////sprintf(c->name, "client_%ld",client_size(c_list));
     c->next = SENTINEL;
     struct client * ptr = c_list;
     while (!is_last_client(ptr)) ptr = ptr->next;
@@ -89,7 +89,6 @@ void client_pop(struct client * c, struct client * c_list)
 }
 void client_push(struct client * c, struct client * c_list) 
 {
-    ////sprintf(c->name, "client no %ld",client_size(c_list));
     c->next = c_list->next;
     c_list->next = c;
 }
@@ -192,18 +191,27 @@ bool client_read(struct client * c)
     bzero(c->rbuffer, BUFFER_SIZE);
     int message = read(c->socket, c->rbuffer, BUFFER_SIZE);
     if (message < 0) error("Error on reading");
-    printf("recieved from %s : %s", c->name, c->rbuffer);
-    if (message == 0) return false;
     // this is for Java Client
     size_t len = strlen(c->rbuffer);
     if (len > 0 && c->rbuffer[len-1] == '\n') c->rbuffer[len-1] = '\0';
     //
+    printf("recieved from %s : %s.\n", c->name, c->rbuffer);
+    if (message == 0) return false;
     return true;
 }
+
 void client_write(struct client * c, char* message)
 {
     bzero(c->wbuffer, BUFFER_SIZE);
     printf("sent to %s : %s\n", c->name, message);
     sprintf(c->wbuffer, "%s \n\033[32mserver@%s\033[0m:\033[33m~/control\033[0m$ ", message, c->id); 
+    send(c->socket, c->wbuffer, strlen(c->wbuffer), 0); 
+}
+
+void client_simple_write(struct client * c, char* message)
+{
+    bzero(c->wbuffer, BUFFER_SIZE);
+    printf("sent to %s : %s\n", c->name, message);
+    sprintf(c->wbuffer, "%s ", message); 
     send(c->socket, c->wbuffer, strlen(c->wbuffer), 0); 
 }

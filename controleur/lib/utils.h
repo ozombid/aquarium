@@ -13,6 +13,8 @@
 #include <sys/time.h> // FD_SET, FD_ISSET, FD_ZERO macros
 #include <errno.h>
 #include <time.h>
+#include <pthread.h>
+#include <signal.h>
 
 #define MAX_COMMANDS 10
 #define MAX_NAMES 100

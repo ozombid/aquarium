@@ -164,7 +164,7 @@ char* views_show(struct view * v_list)
     return result;
 }
 
-struct frame get_frame(char* str, const char* delim)
+struct frame frame_create(char* str, const char* delim)
 {
     int ints[4];
     int count = 0;
