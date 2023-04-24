@@ -110,9 +110,3 @@ int main(int argc, char *argv[])
     server_free(server);
 	return 0;
 }
-
-
-/*
-            struct thread_args * a = malloc(sizeof(struct thread_args));
-            *a = (struct thread_args){c, server};
-            pthread_create(&(c->thread), NULL, &sign_in, a);*/
