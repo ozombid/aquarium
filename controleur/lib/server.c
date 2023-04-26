@@ -184,6 +184,9 @@ void handler_user(struct client * c, struct server * s)
             }
         }
     }
+
+    else if (c->view == NULL) client_write(c, "hello first");
+
     else if (!strcmp(cmds[0],"status")) // fish
     {
         char* result = fishes_show(c->aquarium->fishes);
@@ -192,7 +195,7 @@ void handler_user(struct client * c, struct server * s)
     }
     else if (!strcmp(cmds[0],"add") && !strcmp(cmds[1],"fish")) 
     {
-        struct shape s = shape_create(cmds[3],"+x");
+        struct shape s = shape_create(cmds[3],"+x",c->view);
         struct move * m = move_find(cmds[4], c->aquarium->moves);
         if (!aquarium_fit_shape(c->aquarium, s)) client_write(c,"Cannot add this fish (out of aquarium)");
         else if (m == NULL) client_write(c,"Move does not exist");
@@ -222,10 +225,43 @@ void handler_user(struct client * c, struct server * s)
             client_write(c, message); 
         }
     }
+    else if (!strcmp(cmds[0],"ls")) 
+    {
+        char* result = (char*) calloc(BUFFER_SIZE,sizeof(char)); 
+        if (fish_is_empty(c->aquarium->fishes)) strcat(result, "empty list of fishes");
+        else {
+            sprintf(result, "moving %s's fishes", c->name);
+            int n = 5;
+            int t = 0; //! i want write sleep write not strcat sleep strcat
+            while (n-- > 0) {
+                strcat(result, "\n");
+                struct fish * ptr = c->aquarium->fishes->next;
+                while (!is_fish_end(ptr)) {
+                    if (view_fit_fish(c->view, ptr)) {
+                        ////printf("vf : %s : %dx%dx%dx%d \n", c->view->name, c->view->frame.x, c->view->frame.y, c->view->frame.width, c->view->frame.height);
+                        ////printf("ff : %s : %dx%dx%dx%d \n", ptr->name, ptr->shape.x, ptr->shape.y, ptr->shape.width, ptr->shape.height);
+                        int dt = ptr->move.move(ptr, c->view, c->aquarium);
+                        char message[BUFFER_SIZE];
+                        int x = to_percent(ptr->final_shape.x, c->view->frame.x, c->view->frame.width);
+                        int y = to_percent(ptr->final_shape.y, c->view->frame.y, c->view->frame.height);
+                        sprintf(message, "%s at %dx%d,%dx%d,%d", ptr->name, x, y, 
+                            ptr->final_shape.width, ptr->final_shape.height, dt);
+                        strcat(result, " - ");
+                        strcat(result, message);
+                    }
+                    ptr = ptr->next;
+                    sleep(t);
+                }
+            }
+        }
+        client_write(c, result); 
+        free(result);
+    }
     else client_write(c, "Permission denied"); 
 
     // free
     free(cmds);
 }
+
 
 

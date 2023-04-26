@@ -18,7 +18,7 @@
 
 #define MAX_COMMANDS 10
 #define MAX_NAMES 100
-#define BUFFER_SIZE 255
+#define BUFFER_SIZE 1024
 #define NONE "none"
 #define NEG -1
 
@@ -35,10 +35,7 @@ and splits the string into tokens based on the delimiters provided
 */
 char** split_string(char* str, const char* delimiters);
 
-/*
-The split_n_string function is similar to split_string, but it splits a string 
-into tokens and converts each token to an integer. 
-The converted integers are then stored in an integer array ints. 
-The function returns the number of integers stored in the ints array.
-*/
-struct frame get_frame(char* str, const char* delim);
+
+int to_percent(int x, int coord, int dim);
+
+int from_percent(int x, int coord, int dim);

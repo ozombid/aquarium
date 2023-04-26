@@ -33,6 +33,7 @@ int main(int argc, char *argv[])
 	// accept the incoming connection
 	addrlen = sizeof(address);
 		
+    srand(time(NULL));
 	while(1)
 	{
         if (server_is_down(server)) break;

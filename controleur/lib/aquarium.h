@@ -30,6 +30,8 @@ bool aquarium_fit_frame(struct aquarium * a, struct frame f);
 
 bool aquarium_fit_shape(struct aquarium * a, struct shape s);
 
+bool view_fit_fish(struct view * v, struct fish * f);
+
 // show
 char* aquarium_show(struct aquarium * a);
 
@@ -48,3 +50,6 @@ void aquarium_pop(struct aquarium * a, struct aquarium * a_list);
 void aquarium_push(struct aquarium * a, struct aquarium * a_list);
 
 void aquarium_remove(struct aquarium * a, struct aquarium * a_list);
+
+// shape
+struct shape shape_create(char* str, const char* delim, struct view * v);

@@ -41,6 +41,7 @@ bool control_server_syntax(char** words)
 {
     // syntaxes
         bool is_hello(char* s)  { return !strcmp(s,"hello"); }
+        bool is_ls(char* s)  { return !strcmp(s,"ls"); }
         bool is_dot(char* s)  { return !strcmp(s,"."); }
         bool is_as(char* s)     { return !strcmp(s,"as"); }
         bool is_down(char* s)     { return !strcmp(s,"down"); }
@@ -100,10 +101,12 @@ bool control_server_syntax(char** words)
         struct node * hello = create_node(2,hello_a,is_hello);
         // bye
         struct node * close = create_leaf(is_bye);
+        // ls
+        struct node * ls = create_leaf(is_ls);
         // cmds
-        struct node * dollar_cmds[] = {load,save,show,status,add,del,start,close,hello,down};
+        struct node * dollar_cmds[] = {load,save,show,status,add,del,start,close,hello,down,ls};
         // dollar
-        struct node * dollar = create_node(10,dollar_cmds,is_string);
+        struct node * dollar = create_node(11,dollar_cmds,is_string);
 
     // traverse
         bool res = node_traverse(dollar,words);
@@ -112,7 +115,7 @@ bool control_server_syntax(char** words)
         free(dim); free(string);
         free(show); free(status);
         free(save); free(start);
-        free(load); free(down);
+        free(load); free(down); free(ls);
         free(hello); free(dot); free(as); free(in);
         free(add_4); free(add_3); free(add_2); free(add_11); free(add_12); free(add);
         free(del_11); free(del_12); free(del);

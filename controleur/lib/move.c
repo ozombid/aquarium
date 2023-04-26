@@ -1,21 +1,22 @@
 #include "move.h"
 
-static const struct move mark_end = {"end of list", NULL}; 
+static const struct move mark_end = {"end of list", NULL, NULL}; 
 #define SENTINEL ((struct move *) &mark_end)
 
 
 struct move * move_empty() 
 {
     struct move * m = malloc(sizeof(struct move));
-    *m = (struct move){"begin of list", SENTINEL};
+    *m = (struct move){"begin of list", NULL, SENTINEL};
     return m;
 }
 
-struct move * move_create(char* name)
+struct move * move_create(char* name, int (*move)(struct fish *,  struct view *, struct aquarium *))
 {
     struct move * m = calloc(1,sizeof(struct move));
     m->name = malloc(MAX_NAMES*sizeof(char));
     strcpy(m->name, name);
+    m->move = move;
     m->next = NULL;
     return m;
 }
@@ -36,18 +37,16 @@ bool move_is_empty(struct move * m)
     return is_last_move(m);
 }
 
-void move_pop(char* name, struct move * m_list) 
+void move_pop(struct move * m, struct move * m_list) 
 {
-    struct move * m = move_create(name);
     m->next = SENTINEL;
     struct move * ptr = m_list;
     while (!is_last_move(ptr)) ptr = ptr->next;
     ptr->next = m;
 }
 
-void move_push(char* name, struct move * m_list) 
+void move_push(struct move * m, struct move * m_list) 
 {
-    struct move * m = move_create(name);
     m->next = m_list->next;;
     m_list->next = m;
 }

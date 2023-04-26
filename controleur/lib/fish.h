@@ -14,14 +14,13 @@ struct fish {
     char* name;
     bool status;
     struct shape shape;
+    struct shape final_shape;
     struct move move;
     struct fish * next;
 };
 
 // init
 struct fish * fish_empty();
-
-struct shape shape_create(char* str, const char* delim);
 
 struct fish * fish_create(char* name, struct shape s, struct move m);
 

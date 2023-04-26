@@ -79,3 +79,4 @@ bool client_read(struct client * c);
 void client_write(struct client * c, char* message);
 
 void client_simple_write(struct client * c, char* message);
+

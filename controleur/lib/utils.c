@@ -32,3 +32,14 @@ char** split_string(char* str, const char* delimiters)
     return tokens;
 }
 
+int from_percent(int x, int coord, int dim)
+{
+    return coord + (dim * x / 100);
+}
+
+int to_percent(int x, int coord, int dim)
+{
+    return 100*(x - coord) / dim;
+}
+
+

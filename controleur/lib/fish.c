@@ -3,10 +3,10 @@
 static const struct shape no_shape = {-1,-1,-1,-1}; 
 #define NO_SHAPE no_shape
 
-static const struct move no_move = {"no move", NULL}; 
+static const struct move no_move = {"no move", NULL, NULL}; 
 #define NO_MOVE no_move
 
-static const struct fish mark_end = {"end of list", NOT_STARTED, NO_SHAPE, NO_MOVE, NULL}; 
+static const struct fish mark_end = {"end of list", NOT_STARTED, NO_SHAPE, NO_SHAPE, NO_MOVE, NULL}; 
 #define SENTINEL ((struct fish *) &mark_end)
 
 
@@ -15,7 +15,7 @@ static const struct fish mark_end = {"end of list", NOT_STARTED, NO_SHAPE, NO_MO
 struct fish * fish_empty() 
 {
     struct fish * f = malloc(sizeof(struct fish));
-    *f = (struct fish){"begin of list", NOT_STARTED, NO_SHAPE, NO_MOVE, SENTINEL};
+    *f = (struct fish){"begin of list", NOT_STARTED, NO_SHAPE, NO_SHAPE, NO_MOVE, SENTINEL};
     return f;
 }
 
@@ -25,8 +25,9 @@ struct fish * fish_create(char* name, struct shape s, struct move m)
     f->name = malloc(MAX_NAMES*sizeof(char));
     strcpy(f->name, name);
     f->shape = s;
+    f->final_shape = s;
     f->move = m;
-    f->status = NOT_STARTED;
+    f->status = STARTED; //! change here 
     f->next = NULL;
     return f;
 }
@@ -133,7 +134,7 @@ char* fishes_show(struct fish * f_list)
     else {
         sprintf(result, "%ld fishes in aquarium", fish_size(f_list));
         struct fish * ptr = f_list->next;
-        while(!is_fish_end(ptr)) {
+        while (!is_fish_end(ptr)) {
             char* fish_str = fish_show(*ptr); 
             strcat(result, "\n");
             strcat(result, fish_str); 
@@ -144,20 +145,14 @@ char* fishes_show(struct fish * f_list)
     return result;
 }
 
-void fish_start(struct fish * f) {
-    if (f->status != STARTED) f->status = STARTED;
+void fish_start(struct fish * f) 
+{
+    if (f->status == NOT_STARTED) {
+        f->shape.x = f->final_shape.x;
+        f->shape.y = f->final_shape.y;
+        f->status = STARTED;
+    }
+    //else assert (f->final_shape == f->shape);
 }
 
-struct shape shape_create(char* str, const char* delim)
-{
-    int ints[4];
-    int count = 0;
-    char* token = strtok(str, delim);
-    while (token != NULL && count < 4) {
-        ints[count] = atoi(token);
-        count++;
-        token = strtok(NULL, delim);
-    }
-    return (struct shape){ints[0],ints[1],ints[2],ints[3]};
-}
 

@@ -3,13 +3,48 @@
 static const struct aquarium mark_end = {"end of list", -1, -1, NULL, NULL, NULL, NULL}; 
 #define SENTINEL ((struct aquarium *) &mark_end)
 
+// moves
+int random_move(struct fish * f, struct view * v, struct aquarium * a) // v not used
+{
+    f->status = NOT_STARTED;
+    f->final_shape.x = 0 + (rand() % (a->width + 1));
+    f->final_shape.y = 0 + (rand() % (a->height + 1));
+    // if out of view to c1 view > delFish + addFish (not add fish) with move st dt = 0 start fish > c1
+    // or adapt server : change the move to 2 moves ??
+    return 5;
+}
+int random_inside_move(struct fish * f, struct view * v, struct aquarium * a) // a not used
+{
+    f->status = NOT_STARTED;
+    f->final_shape.x = v->frame.x + (rand() % (v->frame.width + 1));
+    f->final_shape.y = v->frame.y + (rand() % (v->frame.height + 1));
+    return 5;
+}
+
+// shape
+struct shape shape_create(char* str, const char* delim, struct view * v)
+{
+    int ints[4];
+    int count = 0;
+    char* token = strtok(str, delim);
+    while (token != NULL && count < 4) {
+        ints[count] = atoi(token);
+        count++;
+        token = strtok(NULL, delim);
+    }
+    int x = from_percent(ints[0], v->frame.x, v->frame.width);
+    int y = from_percent(ints[1], v->frame.y, v->frame.height);
+    return (struct shape){x, y,ints[2],ints[3]};
+}
+
+
+// init
 struct aquarium * aquarium_empty() 
 {
     struct aquarium * a = malloc(sizeof(struct aquarium));
     *a = (struct aquarium){"begin of list",- 1, -1, NULL, NULL, NULL, SENTINEL};
     return a;
 }
-
 struct aquarium * aquarium_init() 
 {
     struct view * v = view_empty();
@@ -21,8 +56,8 @@ struct aquarium * aquarium_init()
     struct fish * f = fish_empty();
 
     struct move * m = move_empty();
-    move_pop("random", m);
-    move_pop("linear", m);
+    struct move * m1 = move_create("random", random_move);
+    move_pop(m1, m);
 
     struct aquarium * a = calloc(1,sizeof(struct aquarium));
     //memset(&a, 0, sizeof(a));
@@ -50,6 +85,7 @@ void aquarium_save(struct aquarium * a)
     fclose(fp);
 }
 
+// bools
 bool aquarium_fit_frame(struct aquarium * a, struct frame f) 
 {
     bool is_inside(int x, int y) { 
@@ -57,7 +93,6 @@ bool aquarium_fit_frame(struct aquarium * a, struct frame f)
     }
     return is_inside(f.x,f.y) && is_inside(f.x+f.width, f.y+f.height);
 }
-
 bool aquarium_fit_shape(struct aquarium * a, struct shape s) 
 {
     bool is_inside(int x, int y) { 
@@ -65,22 +100,29 @@ bool aquarium_fit_shape(struct aquarium * a, struct shape s)
     }
     return is_inside(s.x,s.y) && is_inside(s.x+s.width, s.y+s.height);
 }
-
+bool view_fit_fish(struct view * v, struct fish * f)
+{
+    bool is_inside(int x, int y) { 
+        return x >= v->frame.x && x <= v->frame.x + v->frame.width &&
+            y >= v->frame.y && y <= v->frame.y + v->frame.height;
+    }
+    return is_inside(f->shape.x,f->shape.y) &&
+        is_inside(f->shape.x+f->shape.width, f->shape.y+f->shape.height);
+}
 bool is_aquarium_end(struct aquarium * a)
 {
     return a == SENTINEL;
 }
-
 bool is_last_aquarium(struct aquarium * a)
 {
     return is_aquarium_end(a->next);
 }
-
 bool aquarium_is_empty(struct aquarium * a)
 {
     return is_last_aquarium(a);
 }
 
+// add / remove / free
 void aquarium_pop(struct aquarium * a, struct aquarium * a_list) 
 {
     a->next = SENTINEL;
@@ -88,13 +130,11 @@ void aquarium_pop(struct aquarium * a, struct aquarium * a_list)
     while (!is_last_aquarium(ptr)) ptr = ptr->next;
     ptr->next = a;
 }
-
 void aquarium_push(struct aquarium * a, struct aquarium * a_list) 
 {
     a->next = a_list->next;;
     a_list->next = a;
 }
-
 void aquarium_remove(struct aquarium * a, struct aquarium * a_list) 
 {
     struct aquarium * ptr = a_list;
@@ -107,29 +147,6 @@ void aquarium_remove(struct aquarium * a, struct aquarium * a_list)
     free(a->name);
     free(a);
 }
-
-struct aquarium * aquarium_find(char* name, struct aquarium * a_list) 
-{
-    if (aquarium_is_empty(a_list)) return NULL;
-    struct aquarium * ptr = a_list;
-    while (!is_aquarium_end(ptr)) {
-        if (!strcmp(ptr->name, name)) return ptr;
-        ptr = ptr->next;
-    }
-    return NULL;
-}
-
-size_t aquarium_size(struct aquarium * a_list)
-{
-    size_t count = 0;
-    struct aquarium * ptr = a_list;
-    while (!is_last_aquarium(ptr)) {
-        count++;
-        ptr = ptr->next;
-    }
-    return count;
-}
-
 void aquarium_free(struct aquarium * a_list)
 {
     struct aquarium * ptr = a_list->next;
@@ -145,6 +162,29 @@ void aquarium_free(struct aquarium * a_list)
     free(a_list);
 }
 
+// find / size
+struct aquarium * aquarium_find(char* name, struct aquarium * a_list) 
+{
+    if (aquarium_is_empty(a_list)) return NULL;
+    struct aquarium * ptr = a_list;
+    while (!is_aquarium_end(ptr)) {
+        if (!strcmp(ptr->name, name)) return ptr;
+        ptr = ptr->next;
+    }
+    return NULL;
+}
+size_t aquarium_size(struct aquarium * a_list)
+{
+    size_t count = 0;
+    struct aquarium * ptr = a_list;
+    while (!is_last_aquarium(ptr)) {
+        count++;
+        ptr = ptr->next;
+    }
+    return count;
+}
+
+// show
 char* aquarium_show(struct aquarium * a) // freed
 {
     char* result = (char*) calloc(BUFFER_SIZE,sizeof(char)); 
@@ -156,6 +196,34 @@ char* aquarium_show(struct aquarium * a) // freed
     free(fishes);
     return result;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
