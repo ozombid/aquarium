@@ -1,4 +1,3 @@
-#include "view.h"
 #include "fish.h"
 
 struct aquarium {
@@ -25,12 +24,10 @@ bool aquarium_is_empty(struct aquarium * a);
 bool is_aquarium_end(struct aquarium * a);
 
 bool is_last_aquarium(struct aquarium * a);
-
+//! shape_fit_shape
 bool aquarium_fit_frame(struct aquarium * a, struct frame f);
 
 bool aquarium_fit_shape(struct aquarium * a, struct shape s);
-
-bool view_fit_fish(struct view * v, struct fish * f);
 
 // show
 char* aquarium_show(struct aquarium * a);

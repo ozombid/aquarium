@@ -100,15 +100,7 @@ bool aquarium_fit_shape(struct aquarium * a, struct shape s)
     }
     return is_inside(s.x,s.y) && is_inside(s.x+s.width, s.y+s.height);
 }
-bool view_fit_fish(struct view * v, struct fish * f)
-{
-    bool is_inside(int x, int y) { 
-        return x >= v->frame.x && x <= v->frame.x + v->frame.width &&
-            y >= v->frame.y && y <= v->frame.y + v->frame.height;
-    }
-    return is_inside(f->shape.x,f->shape.y) &&
-        is_inside(f->shape.x+f->shape.width, f->shape.y+f->shape.height);
-}
+
 bool is_aquarium_end(struct aquarium * a)
 {
     return a == SENTINEL;
@@ -189,7 +181,7 @@ char* aquarium_show(struct aquarium * a) // freed
 {
     char* result = (char*) calloc(BUFFER_SIZE,sizeof(char)); 
     char* views = views_show(a->views);
-    char* fishes = fishes_show(a->fishes);
+    char* fishes = fishes_show(a->fishes, a->views);
     sprintf(result, "\n---- %s ----\n%d x %d \nviews : %s\nfishes : %s", 
             a->name, a->width, a->height, views, fishes);
     free(views);

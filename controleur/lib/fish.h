@@ -1,4 +1,5 @@
 #include "move.h"
+#include "view.h"
 
 #define STARTED true
 #define NOT_STARTED false 
@@ -50,10 +51,9 @@ void fish_start(struct fish * f);
 void fish_free(struct fish * f_list);
 
 // show
-char* shape_show(struct shape s); 
+bool fish_fit_view(struct fish * f, struct view * v); // shape - shape
 
-char* fish_show(struct fish f);
+char* fish_show(struct fish * f, struct view * v);
 
-char* fishes_show(struct fish * f_list);
-
+char* fishes_show(struct fish * f_list, struct view * v_list);
 

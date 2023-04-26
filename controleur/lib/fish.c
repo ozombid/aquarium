@@ -108,38 +108,47 @@ void fish_free(struct fish * f_list)
     free(f_list);
 }
 
-char* shape_show(struct shape s) // freed in show_fish
+bool fish_fit_view(struct fish * f, struct view * v) // shape - shape
 {
-    char* result = (char*) malloc(40*sizeof(char)); // allocate memory for the string
-    sprintf(result, "%d x %d + %d + %d", s.x, s.y, s.width, s.height); 
-    return result; // return the formatted string
+    bool is_inside(int x, int y) { 
+        return x >= v->frame.x && x <= v->frame.x + v->frame.width &&
+            y >= v->frame.y && y <= v->frame.y + v->frame.height;
+    }
+    return is_inside(f->shape.x,f->shape.y) &&
+        is_inside(f->shape.x+f->shape.width, f->shape.y+f->shape.height);
 }
 
-char* fish_show(struct fish f)
+char* fish_show(struct fish * f, struct view * v)
 {
     char* result = (char*) malloc(50*sizeof(char));
-    char* shape = shape_show(f.shape);
-    char* status = f.status == STARTED ? "started" : "not started";
-    sprintf(result, "%s : %s %s", f.name, shape, status); 
-    free(shape);
+    char* status = f->status == STARTED ? "started" : "not started";
+    int x = to_percent(f->shape.x, v->frame.x, v->frame.width);
+    int y = to_percent(f->shape.y, v->frame.y, v->frame.height);
+    sprintf(result, "%s : %s : %d x %d + %d + %d %s", f->name, v->name, 
+        x, y, f->shape.width, f->shape.height, status);
     return result;
 }
 
-char* fishes_show(struct fish * f_list) 
+char* fishes_show(struct fish * f_list, struct view * v_list) 
 {
     char* result = (char*) calloc(BUFFER_SIZE,sizeof(char)); 
-    if (fish_is_empty(f_list)) {
-        strcat(result, "empty list of fishes");
-    }
+    if (fish_is_empty(f_list)) strcat(result, "empty list of fishes");
     else {
         sprintf(result, "%ld fishes in aquarium", fish_size(f_list));
-        struct fish * ptr = f_list->next;
-        while (!is_fish_end(ptr)) {
-            char* fish_str = fish_show(*ptr); 
-            strcat(result, "\n");
-            strcat(result, fish_str); 
-            free(fish_str); 
-            ptr = ptr->next;
+        struct fish * f_ptr = f_list->next;
+        while (!is_fish_end(f_ptr)) {
+            struct view * v_ptr = v_list->next;
+            while (!is_view_end(v_ptr)) {
+                if (fish_fit_view(f_ptr, v_ptr)) {
+                    char* line = fish_show(f_ptr, v_ptr);
+                    strcat(result, "\n");
+                    strcat(result, line);
+                    free(line); 
+                    // break;
+                }
+                v_ptr = v_ptr->next;
+            }
+            f_ptr = f_ptr->next;
         }
     }
     return result;

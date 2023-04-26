@@ -161,6 +161,7 @@ void handler_user(struct client * c, struct server * s)
 
     else if (!strcmp(cmds[0],"hello")) 
     {
+        //!sleep(10); threads ?
         bool d = false;
         if (cmds_len == 2) d = true;
         else {
@@ -189,7 +190,7 @@ void handler_user(struct client * c, struct server * s)
 
     else if (!strcmp(cmds[0],"status")) // fish
     {
-        char* result = fishes_show(c->aquarium->fishes);
+        char* result = fishes_show(c->aquarium->fishes, c->aquarium->views);
         client_write(c, result);
         free(result);
     }
@@ -237,17 +238,17 @@ void handler_user(struct client * c, struct server * s)
                 strcat(result, "\n");
                 struct fish * ptr = c->aquarium->fishes->next;
                 while (!is_fish_end(ptr)) {
-                    if (view_fit_fish(c->view, ptr)) {
+                    if (fish_fit_view(ptr, c->view)) {
                         ////printf("vf : %s : %dx%dx%dx%d \n", c->view->name, c->view->frame.x, c->view->frame.y, c->view->frame.width, c->view->frame.height);
                         ////printf("ff : %s : %dx%dx%dx%d \n", ptr->name, ptr->shape.x, ptr->shape.y, ptr->shape.width, ptr->shape.height);
                         int dt = ptr->move.move(ptr, c->view, c->aquarium);
-                        char message[BUFFER_SIZE];
+                        char line[BUFFER_SIZE];
                         int x = to_percent(ptr->final_shape.x, c->view->frame.x, c->view->frame.width);
                         int y = to_percent(ptr->final_shape.y, c->view->frame.y, c->view->frame.height);
-                        sprintf(message, "%s at %dx%d,%dx%d,%d", ptr->name, x, y, 
+                        sprintf(line, "%s at %dx%d,%dx%d,%d", ptr->name, x, y, 
                             ptr->final_shape.width, ptr->final_shape.height, dt);
                         strcat(result, " - ");
-                        strcat(result, message);
+                        strcat(result, line);
                     }
                     ptr = ptr->next;
                     sleep(t);
