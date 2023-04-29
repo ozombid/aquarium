@@ -1,12 +1,10 @@
 CC ?= gcc
-DEBUG = gdb
+VAL = valgrind
 CFLAGS = -Wall -Wextra -std=c99 -g
+VALFLAGS = --leak-check=full --show-reachable=yes --track-origins=yes
 LDFLAGS = 
 BUILD_DIR = build
-VAL = valgrind
-VALFLAGS = --leak-check=full --show-reachable=yes --track-origins=yes
-EXEC = ./
-VPATH = lib:lib
+VPATH = src:src
 PORT ?= 8000
 
 all: clean 
@@ -36,10 +34,10 @@ $(BUILD_DIR)/aquarium.o: aquarium.c aquarium.h
 	$(CC) -Wall -Wextra -g -c -o $@ $<
 
 $(BUILD_DIR)/client.o: client.c client.h
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) -Wall -Wextra -g -c -o $@ $<
 
 $(BUILD_DIR)/server.o: server.c server.h
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $< -lrt
 
 $(BUILD_DIR)/main.o: main.c 
 	$(CC) $(CFLAGS) -c -o $@ $<

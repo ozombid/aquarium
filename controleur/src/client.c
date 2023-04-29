@@ -1,13 +1,13 @@
 #include "client.h"
 
-static const struct client mark_end = {NEG, NONE, NONE, NONE, NONE, LEFT, NULL, NULL, NULL, NULL}; 
+static const struct client mark_end = {NEG, NONE, NONE, NONE, NONE, LEFT, (pthread_t)0, NULL, NULL, NULL, NULL}; 
 #define SENTINEL ((struct client *) &mark_end)
 
 // init
 struct client * client_empty() 
 {
     struct client * c = malloc(sizeof(struct client));
-    *c = (struct client){NEG, NONE, NONE, NONE, NONE, LEFT, NULL, NULL, NULL, SENTINEL};
+    *c = (struct client){NEG, NONE, NONE, NONE, NONE, LEFT, (pthread_t)0, NULL, NULL, NULL, SENTINEL};
     return c;
 }
 struct client * client_create(int socket)
@@ -200,6 +200,14 @@ bool client_read(struct client * c)
     return true;
 }
 
+void client_write_OK(struct client * c, char* message)
+{
+    bzero(c->wbuffer, BUFFER_SIZE);
+    printf("sent to %s : %s\n", c->name, message);
+    sprintf(c->wbuffer, "OK : %s \n\033[32mserver@%s\033[0m:\033[33m~/control\033[0m$ ", message, c->id); 
+    send(c->socket, c->wbuffer, strlen(c->wbuffer), 0); 
+}
+
 void client_write(struct client * c, char* message)
 {
     bzero(c->wbuffer, BUFFER_SIZE);
@@ -214,4 +222,17 @@ void client_simple_write(struct client * c, char* message)
     printf("sent to %s : %s\n", c->name, message);
     sprintf(c->wbuffer, "%s", message); 
     send(c->socket, c->wbuffer, strlen(c->wbuffer), 0); 
+}
+
+void client_write_close(struct client * c)
+{
+    bzero(c->wbuffer, BUFFER_SIZE);
+    printf("sent close to %s\n", c->name);
+    sprintf(c->wbuffer, "\033[32mserver@%s\033[0m:\033[33m~/control\033[0m$ ", c->id); 
+    send(c->socket, c->wbuffer, strlen(c->wbuffer), 0); 
+}
+
+void client_wait_read(struct client * c)
+{
+    usleep(100000);
 }

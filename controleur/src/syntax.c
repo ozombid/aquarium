@@ -41,10 +41,11 @@ bool control_server_syntax(char** words)
 {
     // syntaxes
         bool is_hello(char* s)  { return !strcmp(s,"hello"); }
-        bool is_ls(char* s)  { return !strcmp(s,"ls"); }
-        bool is_dot(char* s)  { return !strcmp(s,"."); }
+        bool is_ls(char* s)     { return !strcmp(s,"ls"); }
+        bool is_ls_2(char* s)   { return !strcmp(s,"getFishesContinuously"); }
+        bool is_dot(char* s)    { return !strcmp(s,"."); }
         bool is_as(char* s)     { return !strcmp(s,"as"); }
-        bool is_down(char* s)     { return !strcmp(s,"down"); }
+        bool is_down(char* s)   { return !strcmp(s,"down"); }
         bool is_in(char* s)     { return !strcmp(s,"in"); }
         bool is_load(char* s)   { return !strcmp(s,"load"); }
         bool is_add(char* s)    { return !strcmp(s,"add"); }
@@ -54,7 +55,7 @@ bool control_server_syntax(char** words)
         bool is_save(char* s)   { return !strcmp(s,"save"); }
         bool is_show(char* s)   { return !strcmp(s,"show"); }
         bool is_status(char* s) { return !strcmp(s,"status"); }
-        bool is_start(char* s) { return !strcmp(s,"start"); }
+        bool is_start(char* s)  { return !strcmp(s,"start"); }
         bool is_bye(char* s)    { return !strcmp(s,"bye"); }
         bool is_string(char* s) { (void) s; return true; }
         bool is_dim(char* s)    { (void) s; return true; }
@@ -103,10 +104,12 @@ bool control_server_syntax(char** words)
         struct node * close = create_leaf(is_bye);
         // ls
         struct node * ls = create_leaf(is_ls);
+        // ls_2
+        struct node * ls_2 = create_leaf(is_ls_2);
         // cmds
-        struct node * dollar_cmds[] = {load,save,show,status,add,del,start,close,hello,down,ls};
+        struct node * dollar_cmds[] = {load,save,show,status,add,del,start,close,hello,down,ls,ls_2};
         // dollar
-        struct node * dollar = create_node(11,dollar_cmds,is_string);
+        struct node * dollar = create_node(12,dollar_cmds,is_string);
 
     // traverse
         bool res = node_traverse(dollar,words);
@@ -115,7 +118,7 @@ bool control_server_syntax(char** words)
         free(dim); free(string);
         free(show); free(status);
         free(save); free(start);
-        free(load); free(down); free(ls);
+        free(load); free(down); free(ls); free(ls_2);
         free(hello); free(dot); free(as); free(in);
         free(add_4); free(add_3); free(add_2); free(add_11); free(add_12); free(add);
         free(del_11); free(del_12); free(del);

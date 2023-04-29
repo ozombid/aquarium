@@ -1,4 +1,4 @@
-#include "lib/server.h"
+#include "src/server.h"
 
 int main(int argc, char *argv[])
 {

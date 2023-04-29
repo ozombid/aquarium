@@ -17,6 +17,8 @@ struct client {
     char* rbuffer;
     // status
     bool status;
+    // ping 
+    pthread_t ping;
     // server handler
     void (*handler)(struct client *,  struct server *);
     // pointers
@@ -78,5 +80,11 @@ bool client_read(struct client * c);
 
 void client_write(struct client * c, char* message);
 
+void client_write_OK(struct client * c, char* message);
+
 void client_simple_write(struct client * c, char* message);
+
+void client_write_close(struct client * c);
+
+void client_wait_read(struct client * c);
 

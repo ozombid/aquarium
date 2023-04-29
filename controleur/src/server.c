@@ -144,6 +144,19 @@ void handler_user(struct client * c, struct server * s)
     // verify syntax
     if (!control_server_syntax(cmds)) client_write(c, "Command not found");
 
+    else if (!strcmp(cmds[0],"ping")) 
+    { //! thread
+        c->aquarium = NULL;
+        struct aquarium * a = aquarium_find(cmds[1], s->aquarium_list);
+        if (a == NULL) client_write(c, "Aquarium not found");
+        else {
+            client_clear_view(c);
+            client_set_aquarium(c, a);
+            sprintf(message,"Aquarium loaded (%ld display view)",view_size(c->aquarium->views));
+            client_write(c, message);
+        }
+    }
+
     else if (!strcmp(cmds[0],"load")) 
     { 
         c->aquarium = NULL;
@@ -153,7 +166,7 @@ void handler_user(struct client * c, struct server * s)
             client_clear_view(c);
             client_set_aquarium(c, a);
             sprintf(message,"Aquarium loaded (%ld display view)",view_size(c->aquarium->views));
-            client_write(c, message);
+            client_write_OK(c, message);
         }
     }
     // commands that need a loaded aquarium
@@ -203,7 +216,7 @@ void handler_user(struct client * c, struct server * s)
         else {
             fish_pop(cmds[2], s, *m, c->aquarium->fishes);
             sprintf(message,"Fish %s added",cmds[2]);
-            client_write(c, message);
+            client_write_OK(c, message);
         }
     }
     else if (!strcmp(cmds[0],"del") && !strcmp(cmds[1],"fish"))
@@ -213,7 +226,7 @@ void handler_user(struct client * c, struct server * s)
         else {
             fish_remove(f, c->aquarium->fishes);
             sprintf(message,"Fish %s deleted",cmds[2]);
-            client_write(c, message); 
+            client_write_OK(c, message); 
         }
     }
     else if (!strcmp(cmds[0],"start")) 
@@ -223,41 +236,44 @@ void handler_user(struct client * c, struct server * s)
         else {
             fish_start(f);
             sprintf(message,"Fish %s started",cmds[1]);
-            client_write(c, message); 
+            client_write_OK(c, message); 
         }
     }
-    else if (!strcmp(cmds[0],"ls")) 
+    else if (!strcmp(cmds[0],"getFishesContinuously") || !strcmp(cmds[0],"ls"))
     {
-        char* result = (char*) calloc(BUFFER_SIZE,sizeof(char)); 
-        if (fish_is_empty(c->aquarium->fishes)) strcat(result, "empty list of fishes");
+        if (fish_is_empty(c->aquarium->fishes)) client_write(c, "empty list of fishes");
         else {
-            sprintf(result, "moving %s's fishes", c->name);
-            int n = 5;
-            int t = 0; //! i want write sleep write not strcat sleep strcat
+            client_simple_write(c, "OK"); 
+            client_wait_read(c);
+            int n = 5;  
+            int t = !strcmp(cmds[0],"ls") ? 0 : 3; // 3 sec
+            char* result = (char*) calloc(BUFFER_SIZE,sizeof(char)); 
             while (n-- > 0) {
-                strcat(result, "\n");
+                bzero(result, BUFFER_SIZE);
                 struct fish * ptr = c->aquarium->fishes->next;
                 while (!is_fish_end(ptr)) {
                     if (fish_fit_view(ptr, c->view)) {
-                        ////printf("vf : %s : %dx%dx%dx%d \n", c->view->name, c->view->frame.x, c->view->frame.y, c->view->frame.width, c->view->frame.height);
-                        ////printf("ff : %s : %dx%dx%dx%d \n", ptr->name, ptr->shape.x, ptr->shape.y, ptr->shape.width, ptr->shape.height);
                         int dt = ptr->move.move(ptr, c->view, c->aquarium);
                         char line[BUFFER_SIZE];
                         int x = to_percent(ptr->final_shape.x, c->view->frame.x, c->view->frame.width);
                         int y = to_percent(ptr->final_shape.y, c->view->frame.y, c->view->frame.height);
-                        sprintf(line, "%s at %dx%d,%dx%d,%d", ptr->name, x, y, 
+                        sprintf(line, " %s at %dx%d,%dx%d,%d -", ptr->name, x, y, 
                             ptr->final_shape.width, ptr->final_shape.height, dt);
-                        strcat(result, " - ");
                         strcat(result, line);
                     }
                     ptr = ptr->next;
-                    sleep(t);
                 }
+                client_simple_write(c, result); 
+                client_wait_read(c);
+                sleep(t);
             }
+            free(result);
+            client_simple_write(c, "END"); // mark the end
+            client_wait_read(c);
+            client_write_close(c); // next command
         }
-        client_write(c, result); 
-        free(result);
     }
+
     else client_write(c, "Permission denied"); 
 
     // free

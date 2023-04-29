@@ -37,7 +37,6 @@ struct shape shape_create(char* str, const char* delim, struct view * v)
     return (struct shape){x, y,ints[2],ints[3]};
 }
 
-
 // init
 struct aquarium * aquarium_empty() 
 {
